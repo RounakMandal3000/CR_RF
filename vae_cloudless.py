@@ -274,9 +274,9 @@ class DiagonalGaussian(nn.Module):
         mean, logvar = torch.chunk(z, 2, dim=self.chunk_dim)
         if self.sample:
             std = torch.exp(0.5 * logvar)
-            return mean + std * torch.randn_like(mean)
+            return mean + std * torch.randn_like(mean), mean, logvar
         else:
-            return mean
+            return mean, mean, logvar
 
 
 class AutoEncoder(nn.Module):
@@ -306,12 +306,14 @@ class AutoEncoder(nn.Module):
         self.shift_factor = params.shift_factor
 
     def encode(self, x: Tensor) -> Tensor:
-        z = self.reg(self.encoder(x))
+        z, mean, logvar = self.reg(self.encoder(x))
         z = self.scale_factor * (z - self.shift_factor)
-        return z
+        return z, mean, logvar
+
     def decode(self, z: Tensor) -> Tensor:
         z = z / self.scale_factor + self.shift_factor
         return self.decoder(z)
 
     def forward(self, x: Tensor) -> Tensor:
-        return self.decode(self.encode(x))
+        z, mean, logvar = self.encode(x)
+        return (self.decode(z), z, mean, logvar)
