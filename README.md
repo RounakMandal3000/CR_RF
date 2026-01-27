@@ -12,7 +12,7 @@ CR_RF implements a sophisticated cloud removal pipeline for satellite imagery by
 
 ## Architecture
 
-### Flux Model (`Cloud_removal_Flux.py`)
+### Flux architecture based Model (`Cloud_removal_Flux.py`)
 The core model uses a dual-stream transformer architecture with:
 - **Double Stream Blocks**: Process both image and text conditioning simultaneously
 - **Single Stream Blocks**: Refine features in a unified representation
@@ -43,7 +43,6 @@ Specialized VAE trained on cloud-free imagery:
 ```
 CR_RF/
 ├── Cloud_removal_Flux.py          # Main Flux transformer model
-├── Flux.py                        # (Empty placeholder)
 ├── autoencoder.py                 # Standard autoencoder implementation
 ├── vae_cloudless.py              # VAE trained on cloudless images
 ├── layers.py                      # Custom transformer layers and blocks
@@ -89,7 +88,7 @@ End-to-end inference pipeline for cloud removal:
 
 ## Model Architecture 
 
-### Flux Parameters
+### Parameters
 ```python
 FluxParams(
     in_channels=64,           # Input latent channels
