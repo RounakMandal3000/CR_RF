@@ -11,7 +11,7 @@ from layers import (
 )
 
 @dataclass
-class FluxParams:
+class CRParams:
     in_channels: int
     out_channels: int
     vec_in_dim: int
@@ -27,12 +27,12 @@ class FluxParams:
     guidance_embed: bool
 
 
-class Flux(nn.Module):
+class CR(nn.Module):
     """
     Transformer model for flow matching on sequences.
     """
 
-    def __init__(self, params: FluxParams):
+    def __init__(self, params: CRParams):
         super().__init__()
 
         self.params = params

@@ -1,126 +1,27 @@
-# CR_RF: Cloud Removal using Rectified Flow
+# Cloud Removal Flux
 
-A deep learning framework for removing clouds from satellite imagery using Rectified Flow models combined with Variational Autoencoders (VAE) and cloud probability conditioning.
+Transformer-based architecture for spatiotemporal cloud removal in remote-sensing imagery, implemented with PyTorch.
 
 ## Overview
 
-CR_RF implements a sophisticated cloud removal pipeline for satellite imagery by leveraging:
-- **Rectified Flow (Flux) Models**: A transformer-based flow matching architecture for high-quality cloud-free image generation
-- **Variational Autoencoders (VAE)**: For encoding and decoding satellite imagery into latent representations
-- **Cloud Probability Conditioning**: Integrates cloud probability maps to guide the reconstruction process
-- **Dual-Stream Architecture**: Combines image and text conditioning through double and single stream transformer blocks
-
-## Architecture
-
-### Flux architecture based Model (`Cloud_removal_Flux.py`)
-The core model uses a dual-stream transformer architecture with:
-- **Double Stream Blocks**: Process both image and text conditioning simultaneously
-- **Single Stream Blocks**: Refine features in a unified representation
-- **Cloud Probability CNN**: Extracts spatial features from cloud probability maps
-- **Positional Embeddings**: N-dimensional embeddings for spatial awareness
-- **Timestep Conditioning**: For the flow matching denoising process
-
-Key parameters:
-- Configurable hidden dimensions, attention heads, and depth
-- MLP ratio for feed-forward layers
-- Guidance embedding for classifier-free guidance
-
-### Autoencoder Models
-
-#### Standard Autoencoder (`autoencoder.py`)
-- Encoder-decoder architecture with ResNet blocks
-- Attention mechanisms for capturing long-range dependencies
-- Diagonal Gaussian regularization for latent space
-
-#### Cloud-less VAE (`vae_cloudless.py`)
-Specialized VAE trained on cloud-free imagery:
-- Multi-resolution downsampling/upsampling
-- Channel multiplication for progressive feature extraction
-- Configurable resolution and latent channels
+- Implements the `CR` model defined in `Cloud_removal_Flux.py` for flow-matching between cloudy and cloud-free observations.
+- Extends multi-stream attention blocks (`DoubleStreamBlock`, `SingleStreamBlock`) and sinusoidal positional embeddings (`EmbedND`) from the local `layers` module.
+- Supports guidance conditioning and vector features fused through a lightweight CNN encoder.
 
 ## Repository Structure
 
-```
-CR_RF/
-├── Cloud_removal_Flux.py          # Main Flux transformer model
-├── autoencoder.py                 # Standard autoencoder implementation
-├── vae_cloudless.py              # VAE trained on cloudless images
-├── layers.py                      # Custom transformer layers and blocks
-├── math.py                        # Mathematical utilities
-├── utils.py                       # General utility functions
-├── pipeline.py                    # Inference pipeline
-├── cloud_probability_extractor.py # Cloud probability computation
-├── rf_training.py                # Rectified Flow training script
-├── train_flow.py                 # Flow model training
-├── vae_cloudless_training.py     # VAE training for cloudless images
-├── vae_sar_training.py           # VAE training for SAR imagery
-├── run_cloudprob_nohup.sh        # Shell script for cloud probability extraction
-├��─ autoencoder.png               # Autoencoder architecture diagram
-└── double_stream.png             # Double stream architecture diagram
-```
+- `Cloud_removal_Flux.py` – Main model definition with input embeddings, attention blocks, and final projection head.
+- `layers.py` (expected) – Required building blocks such as attention layers, positional embeddings, timestep embeddings, and final head utilities.
 
-## Key Components
+## Requirements
 
-### 1. Cloud Probability Extraction (`cloud_probability_extractor.py`)
-Extracts cloud probability maps from satellite imagery using pre-trained models.
+- Python 3.10+
+- PyTorch 2.1+
 
-### 2. Training Scripts
-- **`rf_training.py`**: Trains the rectified flow model
-- **`train_flow.py`**: Flow-based model training pipeline
-- **`vae_cloudless_training.py`**: Trains VAE on cloud-free images
-- **`vae_sar_training.py`**: Trains VAE on SAR (Synthetic Aperture Radar) data
+## SLURM Jobs
 
-### 3. Custom Layers (`layers.py`)
-Implements specialized components:
-- `DoubleStreamBlock`: Dual-pathway processing for image and text
-- `SingleStreamBlock`: Unified feature processing
-- `EmbedND`: Multi-dimensional positional embeddings
-- `MLPEmbedder`: MLP-based feature embedding
-- `LastLayer`: Final output layer with adaptive layer normalization
+- `cloud_vae.sh`: Submits a GPU job for training the cloudless VAE (`vae_cloudless_training.py`). Activates the `cloud` Conda environment and logs outputs to `cloud_vae_v3.out`/`.err`.
+- `cloud_sar_vae.sh`: Launches the SAR-conditioned VAE training script (`vae_sar_training.py`) with identical resource requests (1 GPU, 8 CPU cores, 32 GB RAM, 70 h wall time).
+- `rf_training.sh`: Schedules the random-feature or transformer training pipeline (`rf_training.py`) using the same environment and resource profile.
+This code takes the pretrained VAEs and the pre-built datasets to train the entire RF model from scratch
 
-### 4. Inference Pipeline (`pipeline.py`)
-End-to-end inference pipeline for cloud removal:
-- Model loading utilities
-- Noise generation for diffusion process
-- Image preprocessing and conditioning
-- Text and CLIP embeddings integration
-
-
-## Model Architecture 
-
-### Parameters
-```python
-FluxParams(
-    in_channels=64,           # Input latent channels
-    out_channels=64,          # Output latent channels
-    vec_in_dim=768,          # Vector conditioning dimension
-    context_in_dim=4096,     # Text context dimension
-    hidden_size=3072,        # Transformer hidden size
-    mlp_ratio=4.0,          # MLP expansion ratio
-    num_heads=24,            # Attention heads
-    depth=19,                # Double stream blocks
-    depth_single_blocks=38,  # Single stream blocks
-    axes_dim=[16, 56, 56],   # Positional embedding dimensions
-    theta=10000,             # RoPE theta parameter
-    qkv_bias=True,           # Bias in attention
-    guidance_embed=True      # Classifier-free guidance
-)
-```
-
-## Features
-**Transformer-based Architecture**: Leverages self-attention for global context understanding  
-**Cloud Probability Conditioning**: Uses cloud masks to guide reconstruction  
-**Flow Matching**: Rectified flow for efficient generation  
-**Multi-Modal Conditioning**: Supports both image and text conditioning  
-**Flexible Training**: Modular training scripts for different components  
-**Efficient Inference**: Optimized pipeline for production use
-
-
-This project builds upon:
-- Rectified Flow models
-- Flux architecture principles
-- VAE-based image generation techniques
-- Satellite imagery processing methods
-
-
-**Note**: This project is under active development.
